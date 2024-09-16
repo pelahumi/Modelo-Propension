@@ -11,6 +11,10 @@ db.isnull().sum()
 #Columnas de la base de datos
 db.columns
 
-#Información de la base de datos
-print(db.())
+#Valors duplicados
+db.duplicated().sum()
+
+#Tipo de datos por columna
+print(db.dtypes)
+
 
