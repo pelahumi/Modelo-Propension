@@ -28,7 +28,7 @@ db['Campanna3'] = db['Campanna1'].map({'SI' : 1, 'NO' : 0})
 
 print(db['Potencia_'].unique())
 
+#Tipos de datos
+print(db.dtypes)
 
-
-
-
+#Diagramas de caja y heatmap
