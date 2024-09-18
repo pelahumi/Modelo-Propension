@@ -50,7 +50,7 @@ sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Reds', xticklabels=['Predict
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.title('Confusion Matrix')
-plt.savefig()
+plt.show()
 
 # ROC Curve
 
@@ -63,3 +63,22 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('ROC Curve')
 plt.show()
+
+# AUC (Importante) --> 80% está muy bien
+
+auc = roc_auc_score(y_test, y_pred_proba)
+print(f'AUC: {auc}')
+
+# Accuracy curve
+
+accuracy = []
+for threshold in thresholds:
+    y_pred = np.where(y_pred_proba > threshold, 1, 0)
+    accuracy.append(accuracy_score(y_test, y_pred))
+
+plt.plot(thresholds, accuracy)
+plt.xlabel('Threshold')
+plt.ylabel('Accuracy')
+plt.title('Accuracy Curve')
+plt.show()
+
