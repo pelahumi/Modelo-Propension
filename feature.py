@@ -69,16 +69,5 @@ plt.show()
 auc = roc_auc_score(y_test, y_pred_proba)
 print(f'AUC: {auc}')
 
-# Accuracy curve
 
-accuracy = []
-for threshold in thresholds:
-    y_pred = np.where(y_pred_proba > threshold, 1, 0)
-    accuracy.append(accuracy_score(y_test, y_pred))
-
-plt.plot(thresholds, accuracy)
-plt.xlabel('Threshold')
-plt.ylabel('Accuracy')
-plt.title('Accuracy Curve')
-plt.show()
 
