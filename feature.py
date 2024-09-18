@@ -57,17 +57,20 @@ plt.show()
 y_pred_proba = model.predict_proba(X_test)[:, 1]
 fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
 
-plt.plot(fpr, tpr)
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curve')
-plt.show()
-
 # AUC (Importante) --> 80% está muy bien
 
 auc = roc_auc_score(y_test, y_pred_proba)
 print(f'AUC: {auc}')
+
+plt.plot(fpr, tpr)
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.legend([f'ROC Curve (AUC = {auc:.2f})'])
+plt.title('ROC Curve')
+plt.show()
+
+
 
 
 
