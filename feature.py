@@ -1,55 +1,65 @@
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_curve, roc_auc_score
 
-#Lectura de la base de datos
-db = pd.read_csv('DB/cars.csv', sep=';')
+db = pd.read_csv('DB/cleaned/cars_cleaned.csv', sep=',')
 
-
-#Graficar correlacion
-def heatmap():
-    num_col = db.select_dtypes(include = ['float64', 'int64']).columns
-    corr = db[num_col].corr()
-    plt.figure(figsize=(12, 6))
-    sns.heatmap(corr, annot=True, cmap='coolwarm')
-    plt.title('Heatmap de correlacion')
-    plt.show()
-
-#Graficar boxplot
-
-def boxplot():
-    num_col = db.select_dtypes(include = ['float64', 'int64']).columns
-    for col in num_col:
-        plt.figure(figsize=(12, 6))
-        sns.boxplot(x=db[col])
-        plt.title(f'Boxplot de {col}')
-        plt.show()
-
-
-#Eliminamos las columnas con mayor correlacion
-db.drop(['Tiempo', 'Revisiones'], axis=1, inplace=True)
-
-#Cambiar tipo de datos
+# Selecting the features
 db.drop(['CODE'], axis=1, inplace=True)
 
-cat_cols = db.select_dtypes(include='object').columns
-cat_map = {}
+X = db.drop(['Mas_1_coche'], axis=1)
+y = db['Mas_1_coche']
 
-le = LabelEncoder()
-for col in cat_cols:
-    db[col] = le.fit_transform(db[col])
-    cat_map[col] = dict(zip(le.classes_, le.transform(le.classes_)))
+# Split the data
 
-#Ver el diccionario de las categorias
-"""for col, mapping in cat_map.items():
-    print(f"Columna: {col}")
-    for category, encoded_value in mapping.items():
-        print(f"  {category}: {encoded_value}")"""
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-if __name__ == '__main__':
-    boxplot()
+# Create the model
+model = DecisionTreeClassifier()
 
+# Train the model
+model.fit(X_train, y_train)
 
+# Predict
+y_pred = model.predict(X_test)
 
+# Evaluate
+
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print(f'Accuracy: {accuracy}')
+print(f'Precision: {precision}')
+print(f'Recall: {recall}')
+print(f'F1: {f1}')
+
+# Confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(10, 7))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Reds', xticklabels=['Predicted 0', 'Predicted 1'], yticklabels=['Actual 0', 'Actual 1'])
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.savefig()
+
+# ROC Curve
+
+y_pred_proba = model.predict_proba(X_test)[:, 1]
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
+
+plt.plot(fpr, tpr)
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.show()
