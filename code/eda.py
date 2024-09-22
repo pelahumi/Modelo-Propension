@@ -1,4 +1,6 @@
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
@@ -15,19 +17,31 @@ def label_encoder(df):
         df[col] = le.fit_transform(df[col])
     return df
 
-def predict_model(df):
+def predict_model(df, model: str = 'DecisionTreeClassifier'):
     # Seleccionar las columnas predictoras (resto de datos)
     df = df.drop(['CODE', 'EDAD_COCHE'], axis=1)
     X = df.drop('Mas_1_coche', axis=1)
     y = df['Mas_1_coche']
 
-    print(X.head(), '\n')
+    #print(X.head(), '\n')
 
     # Separar los datos en conjuntos de entrenamiento y prueba
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
     # Crear un modelo de árbol de decisión
-    dt_model = DecisionTreeClassifier()
+    if model == 'DecisionTreeClassifier':
+        dt_model = DecisionTreeClassifier()
+    elif model == 'KNeighborsClassifier':
+        dt_model = KNeighborsClassifier()
+    elif model == 'RandomForestClassifier':
+        dt_model = RandomForestClassifier()
+    elif model == 'GradientBoostingClassifier':
+        dt_model = GradientBoostingClassifier()
+    elif model == 'AdaBoostClassifier':
+        dt_model = AdaBoostClassifier()
+    else:
+        raise ValueError('Modelo no reconocido')
+    
     dt_model.fit(X_train, y_train)
 
     y_pred = dt_model.predict(X_test)
@@ -39,6 +53,7 @@ def predict_model(df):
     f1 = f1_score(y_test, y_pred)
 
     # Mostrar las métricas
+    print('\n-------------- ', model ,' --------------')
     print(f"Precisión (Accuracy): {accuracy:.2f}")
     print(f"Precisión (Precision): {precision:.2f}")
     print(f"Recall: {recall:.2f}")
@@ -55,4 +70,8 @@ def predict_model(df):
     print('No compran coche: ', np.sum(prediction == 0))
     print('Compran coche: ', np.sum(prediction == 1))
 
-predict_model(df)
+
+
+models = ['DecisionTreeClassifier', 'KNeighborsClassifier', 'RandomForestClassifier', 'GradientBoostingClassifier', 'AdaBoostClassifier']
+for model in models:
+    predict_model(df, model=model)
