@@ -3,11 +3,40 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 import pandas as pd
 import numpy as np
 
 df = pd.read_csv('DB/cleaned/cars_cleaned.csv', sep=',')
+
+# Diccionario de hiperparámetros para cada modelo
+param_grids = {
+    'DecisionTreeClassifier': {
+        'max_depth': [3, 5, 10, None],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    },
+    'KNeighborsClassifier': {
+        'n_neighbors': [3, 5, 7],
+        'weights': ['uniform', 'distance'],
+        'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']
+    },
+    'RandomForestClassifier': {
+        'n_estimators': [100, 200],
+        'max_depth': [5, 10, 20, None],
+        'min_samples_split': [2, 5],
+        'min_samples_leaf': [1, 2]
+    },
+    'GradientBoostingClassifier': {
+        'learning_rate': [0.01, 0.1, 0.2],
+        'n_estimators': [100, 200],
+        'max_depth': [3, 5, 10]
+    },
+    'AdaBoostClassifier': {
+        'n_estimators': [50, 100, 200],
+        'learning_rate': [0.01, 0.1, 1.0]
+    }
+}
 
 # One-Hot Encoding para variables categóricas
 def label_encoder(df):
@@ -30,21 +59,26 @@ def predict_model(df, model: str = 'DecisionTreeClassifier'):
 
     # Crear un modelo de árbol de decisión
     if model == 'DecisionTreeClassifier':
-        dt_model = DecisionTreeClassifier()
+        base_model = DecisionTreeClassifier()
     elif model == 'KNeighborsClassifier':
-        dt_model = KNeighborsClassifier()
+        base_model = KNeighborsClassifier()
     elif model == 'RandomForestClassifier':
-        dt_model = RandomForestClassifier()
+        base_model = RandomForestClassifier()
     elif model == 'GradientBoostingClassifier':
-        dt_model = GradientBoostingClassifier()
+        base_model = GradientBoostingClassifier()
     elif model == 'AdaBoostClassifier':
-        dt_model = AdaBoostClassifier()
+        base_model = AdaBoostClassifier()
     else:
         raise ValueError('Modelo no reconocido')
     
-    dt_model.fit(X_train, y_train)
+    grid_search = GridSearchCV(estimator=base_model, param_grid=param_grids[model], cv=5, scoring='precision', n_jobs=-1)
+    grid_search.fit(X_train, y_train)
 
-    y_pred = dt_model.predict(X_test)
+    # Obtener el mejor modelo optimizado
+    best_model = grid_search.best_estimator_
+    print(f"\nMejores hiperparámetros para {model}: {grid_search.best_params_}")
+
+    y_pred = best_model.predict(X_test)
 
     # Obtener métricas
     accuracy = accuracy_score(y_test, y_pred)
@@ -53,7 +87,7 @@ def predict_model(df, model: str = 'DecisionTreeClassifier'):
     f1 = f1_score(y_test, y_pred)
 
     # Mostrar las métricas
-    print('\n-------------- ', model ,' --------------')
+    print('-------------- ', model ,' --------------')
     print(f"Precisión (Accuracy): {accuracy:.2f}")
     print(f"Precisión (Precision): {precision:.2f}")
     print(f"Recall: {recall:.2f}")
@@ -65,7 +99,7 @@ def predict_model(df, model: str = 'DecisionTreeClassifier'):
 
     new_data = label_encoder(new_data)
 
-    prediction = dt_model.predict(new_data)
+    prediction = best_model.predict(new_data)
 
     print('No compran coche: ', np.sum(prediction == 0))
     print('Compran coche: ', np.sum(prediction == 1))
