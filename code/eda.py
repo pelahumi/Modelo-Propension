@@ -7,9 +7,11 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('DB/cleaned/cars_cleaned.csv', sep=',')
+df = pd.read_csv('DB/cars.csv', sep=',')
+data_filtered = df[df['Mas_1_coche'] == 1]
+print(data_filtered.head())
 
-# Diccionario de hiperparámetros para cada modelo
+'''# Diccionario de hiperparámetros para cada modelo
 param_grids = {
     'DecisionTreeClassifier': {
         'max_depth': [3, 5, 10, None],
@@ -108,4 +110,4 @@ def predict_model(df, model: str = 'DecisionTreeClassifier'):
 
 models = ['DecisionTreeClassifier', 'KNeighborsClassifier', 'RandomForestClassifier', 'GradientBoostingClassifier', 'AdaBoostClassifier']
 for model in models:
-    predict_model(df, model=model)
+    predict_model(df, model=model)'''
