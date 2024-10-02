@@ -4,6 +4,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.interpolate import make_interp_spline
 
 from sklearn.ensemble import GradientBoostingClassifier
 
@@ -273,17 +274,72 @@ def decode_zona_renta(encoded_value, label_mappings, column='Zona _Renta'):
 
 
 
+def graficar_probabilidad_suavizada(probabilidades):
+    """
+    Grafica las probabilidades con una curva suavizada en función de las zonas de renta.
+    
+    Args:
+        probabilidades (dict): Un diccionario con las zonas de renta como claves y las probabilidades como valores.
+    """
+    # Extraer zonas de renta y sus probabilidades
+    zonas_renta = list(probabilidades.keys())
+    valores_probabilidad = list(probabilidades.values())
+
+    # Convertir a arrays de numpy
+    valores_probabilidad_np = np.array(valores_probabilidad)
+    
+    # Crear una interpolación suavizada
+    zonas_renta_num = np.arange(len(zonas_renta))
+    x_suavizado = np.linspace(zonas_renta_num.min(), zonas_renta_num.max(), 300)
+    spl = make_interp_spline(zonas_renta_num, valores_probabilidad_np, k=3)  # k=3 es una curva cúbica
+    y_suavizado = spl(x_suavizado)
+    
+    # Graficar la curva suavizada
+    plt.figure(figsize=(10, 6))
+    plt.plot(x_suavizado, y_suavizado, color='b', label='Probabilidad')
+    
+    # Rellenar el área bajo la curva
+    plt.fill_between(x_suavizado, y_suavizado, color='skyblue', alpha=0.5)
+
+    # Añadir los puntos originales
+    plt.scatter(zonas_renta_num, valores_probabilidad_np, color='red', label='Puntos originales')
+
+    # Etiquetas y título
+    plt.title('Probabilidad de Mas_1_coche en cada Zona de Renta')
+    plt.xlabel('Zona de Renta')
+    plt.ylabel('Probabilidad de Mas_1_coche >= 2')
+    
+    # Limitar el eje Y de 0 a 1 (0% a 100%)
+    plt.ylim(0, 1)
+    
+    # Configurar las etiquetas del eje X con los nombres originales
+    plt.xticks(zonas_renta_num, zonas_renta)  # Rotar etiquetas si es necesario
+    
+    # Ajustar los márgenes del gráfico
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.15)
+    
+    # Mostrar leyenda y cuadrícula
+    plt.legend()
+    plt.grid(True)
+    
+    # Mostrar el gráfico
+    plt.savefig('Img/probabilidad_zona_renta.png')
+
+
+
+
+
 if __name__ == '__main__':
 
     df, label_mappings = previous_analysis()
     grouped_dfs = zona_renta_groupby(df)
+    prob_per_zona_renta = {}
     for zona_renta_encoded, df_renta in grouped_dfs:
         zona_renta_original = decode_zona_renta(zona_renta_encoded, label_mappings, column='Zona _Renta')
-        print('\n', zona_renta_original)
-        print('Edad cliente media: ', df_renta['Edad Cliente'].mean())
-        print('Renovacion media: ', df_renta['Mas_1_coche'].mean())
-        print('Coste venta media: ', df_renta['COSTE_VENTA'].mean())
-        predict_model(df)
+        #print('\n', zona_renta_original)
+        prob_per_zona_renta[zona_renta_original] = df_renta['Mas_1_coche'].mean()
+        #predict_model(df)
+    graficar_probabilidad_suavizada(prob_per_zona_renta)
     
     '''model, X, y, X_test, y_test, y_pred = predict_model(df)
     make_confusion_matrix(y_test, y_pred)
